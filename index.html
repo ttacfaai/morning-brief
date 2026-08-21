@@ -241,6 +241,14 @@ const ohlc={
   {o:4511.84,h:4521.06,l:4450.82,c:4474.96}]
 };
 
+// ---- date labels parallel to each ohlc series (DD/MM/YY) ----
+const dates={
+ thb:["23/07/26","24/07/26","27/07/26","28/07/26","29/07/26","30/07/26","31/07/26","03/08/26","04/08/26","05/08/26","06/08/26","07/08/26","10/08/26","11/08/26","12/08/26","13/08/26","14/08/26","17/08/26","18/08/26","19/08/26","20/08/26"],
+ btc:["30/07/26","31/07/26","01/08/26","02/08/26","03/08/26","04/08/26","05/08/26","06/08/26","07/08/26","08/08/26","09/08/26","10/08/26","11/08/26","12/08/26","13/08/26","14/08/26","15/08/26","16/08/26","17/08/26","18/08/26","19/08/26","20/08/26"],
+ spx:["20/07/26","21/07/26","22/07/26","23/07/26","24/07/26","27/07/26","28/07/26","29/07/26","30/07/26","31/07/26","03/08/26","04/08/26","05/08/26","06/08/26","07/08/26","10/08/26","11/08/26","12/08/26","13/08/26","14/08/26","17/08/26","18/08/26","19/08/26","20/08/26"],
+ gold:["21/07/26","22/07/26","23/07/26","24/07/26","27/07/26","28/07/26","29/07/26","30/07/26","31/07/26","03/08/26","04/08/26","05/08/26","06/08/26","07/08/26","10/08/26","11/08/26","12/08/26","13/08/26","14/08/26","17/08/26","18/08/26","19/08/26","20/08/26"]
+};
+
 function fmt(v){return v>=1000?Math.round(v).toLocaleString():v.toFixed(2);}
 
 function drawCandles(canvas){
@@ -252,7 +260,7 @@ function drawCandles(canvas){
   canvas.width=cssW*dpr; canvas.height=cssH*dpr;
   const ctx=canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
   ctx.clearRect(0,0,cssW,cssH);
-  const padL=mini?2:52, padR=mini?2:8, padT=mini?4:8, padB=mini?4:20;
+  const padL=mini?2:52, padR=mini?2:8, padT=mini?4:8, padB=mini?4:26;
   const W=cssW-padL-padR, H=cssH-padT-padB;
   let max=Math.max(...data.map(d=>d.h)), min=Math.min(...data.map(d=>d.l));
   const pad=(max-min)*0.06||1; max+=pad; min-=pad; const yr=max-min;
@@ -273,6 +281,17 @@ function drawCandles(canvas){
     const yO=yc(d.o), yC=yc(d.c); const top=Math.min(yO,yC); let h=Math.abs(yO-yC); if(h<1)h=1;
     ctx.fillRect(x-cw/2,top,cw,h);
   });
+  // x-axis date labels (non-mini only): ~6 evenly spaced incl. first & last
+  const dts=dates[key];
+  if(!mini && dts){
+    ctx.fillStyle='#9AA7AD'; ctx.font='9px -apple-system,sans-serif'; ctx.textBaseline='top';
+    const n=data.length, cnt=Math.min(6,n), idxs=[];
+    for(let k=0;k<cnt;k++){const i=Math.round(k*(n-1)/(cnt-1)); if(idxs[idxs.length-1]!==i) idxs.push(i);}
+    idxs.forEach(i=>{
+      ctx.textAlign = i===0?'left':(i===n-1?'right':'center');
+      ctx.fillText(dts[i], xc(i), padT+H+6);
+    });
+  }
 }
 function renderVisible(){document.querySelectorAll('canvas[data-k]').forEach(drawCandles);}
 
