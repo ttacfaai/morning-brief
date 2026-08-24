@@ -1,0 +1,31 @@
+name: daily-date
+on:
+  schedule:
+    - cron: '0 2 * * 1-5'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update header date to today (ICT)
+        run: |
+          python3 - <<'PY'
+          import re, datetime
+          n = datetime.datetime.utcnow() + datetime.timedelta(hours=7)
+          m = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."]
+          today = f"{n.day} {m[n.month-1]} {n.year}"
+          s = open("index.html", encoding="utf-8").read()
+          s2 = re.sub(r"(ประจำวัน<b>).*?(</b>)", lambda x: x.group(1) + today + x.group(2), s, count=1)
+          open("index.html", "w", encoding="utf-8").write(s2)
+          print("date set to", today)
+          PY
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git diff --staged --quiet || git commit -m "Auto-update header date"
+          git push
